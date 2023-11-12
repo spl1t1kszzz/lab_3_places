@@ -16,6 +16,11 @@
 namespace Places {
     using json = nlohmann::json;
     namespace asio = boost::asio;
+    namespace beast = boost::beast;
+    namespace http = beast::http;
+    namespace ssl = asio::ssl;
+    using tcp = asio::ip::tcp;
+
 
     class Finder {
         constexpr static auto PLACES_API_KEY = "8f06ab6d-727d-453d-a63c-db843b782335";
@@ -32,7 +37,9 @@ namespace Places {
 
         static asio::awaitable<void> get_weather(const json& location);
 
-        static std::string format_place(const json& place);
+        static std::string format_print(const std::map<std::string, bool>& keys, const json& object);
+
+        static asio::awaitable<std::string> send_request(const std::string& host, const std::string& port, const http::request<http::string_body>& req);
 
     public:
         static void find_places(const std::string&place);
