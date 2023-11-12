@@ -36,9 +36,11 @@ namespace Places {
         int chosen_location;
         std::cin >> chosen_location;
         std::stringstream result;
-        //auto a = co_await co_spawn(co_await asio::this_coro::executor, [&json, chosen_location] { return get_weather(json[chosen_location - 1]);}, asio::use_awaitable);
-        // result << std::string("Weather in ") + json[chosen_location - 1]["name"].get<std::string>() + co_await get_weather(json[chosen_location - 1]);
-        result << co_await get_weather(json[chosen_location - 1]);
+        // auto a = co_await co_spawn(co_await asio::this_coro::executor, [&json, chosen_location] { return get_weather(json[chosen_location - 1]);}, asio::use_awaitable);
+        result << std::string("Weather in ") + json[chosen_location - 1]["name"].get<std::string>() + ": " + co_await
+                get_weather(json[chosen_location - 1]);
+        // result << "Weather in " +  co_await get_weather(json[chosen_location - 1]);
+        result << std::endl << co_await get_interesting_places(json[chosen_location - 1]);
         std::cout << result.str();
     }
 
@@ -63,9 +65,43 @@ namespace Places {
         co_return format_print(keys, json::parse(response)["main"]);
     }
 
-    asio::awaitable<std::string> Finder::get_interesting_places(const json& location) {
-        const auto lat = location["point"]["lat"].get<double>();
-        const auto lon = location["point"]["lng"].get<double>();
+    asio::awaitable<std::string> Finder::get_interesting_places(const json&location) {
+        const auto lat = std::to_string(location["point"]["lat"].get<double>());
+        const auto lon = std::to_string(location["point"]["lng"].get<double>());
+        http::request<http::string_body> request{
+            http::verb::get,
+            "/0.1/en/places/radius?radius=" + std::to_string(RADIUS) + "&lon=" + lon + "&lat=" + lat + "&limit=" +
+            std::to_string(LIMIT_OF_INT_PLACES) + "&apikey=" +
+            INTERESTING_PLACES_API_KEY,
+            HTTP_VERSION
+        };
+        request.set(http::field::host, "api.opentripmap.com");
+        request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        auto response = co_await send_request("api.opentripmap.com", "443", request);
+        const std::map<std::tuple<std::string, std::string>, bool> keys{
+            {{"id", "ID"}, true}, {{"name", "Name"}, true}
+        };
+        std::stringstream ss;
+        for (int i = 0; i < json::parse(response)["features"].size(); ++i) {
+            ss << format_print(keys, json::parse(response)["features"][i]) + format_print(
+                keys, json::parse(response)["features"][i]["properties"]) << std::endl;
+            ss << co_await get_interesting_place_info(json::parse(response)["features"][i]["id"].get<std::string>()) << std::endl << std::endl;
+
+        }
+
+        co_return ss.str();
+    }
+
+
+    asio::awaitable<std::string> Finder::get_interesting_place_info(const std::string& id) {
+        http::request<http::string_body> request{
+            http::verb::get, "/0.1/en/places/xid/" +id + "?apikey=" + INTERESTING_PLACES_API_KEY,
+            HTTP_VERSION
+        };
+        request.set(http::field::host, "api.opentripmap.com");
+        request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        auto response = co_await send_request("api.opentripmap.com", "443" ,request);
+        std::cout << json::parse(response)["wikipedia_extracts"]["text"].get<std::string>() << std::endl;
         co_return std::string();
     }
 
@@ -95,8 +131,9 @@ namespace Places {
         return formatted_place;
     }
 
+
     asio::awaitable<std::string> Finder::send_request(const std::string&host, const std::string&port,
-                                                       http::request<http::string_body>&req) {
+                                                      http::request<http::string_body>&req) {
         auto executor = co_await asio::this_coro::executor;
         asio::ip::tcp::resolver resolver{executor};
         ssl::context ctx(ssl::context::sslv23_client);
