@@ -26,7 +26,7 @@ namespace Places {
         }
         co_await stream.async_handshake(ssl::stream_base::client, asio::use_awaitable);
         http::request<http::string_body> req{
-            http::verb::get, std::string("/api/1/geocode?q=" + place + "&locale=" + LOCALE + "&key=" + API_KEY),
+            http::verb::get, std::string("/api/1/geocode?q=" + place + "&locale=" + LOCALE + "&key=" + PLACES_API_KEY),
             HTTP_VERSION
         };
         req.set(http::field::host, "graphhopper.com");
@@ -60,7 +60,29 @@ namespace Places {
             co_return;
         }
         for (int i = 0; i < json.size(); ++i) {
-            std::cout << "Location " << i + 1 << ": " << json[i] << std::endl << std::endl;
+            std::cout << "Location " << i + 1 << ": " << format_place(json[i]) << std::endl << std::endl;
         }
+        std::cout << "Choose location: ";
+        int chosen_location;
+        std::cin >> chosen_location;
+        co_spawn(co_await asio::this_coro::executor,[&json, &chosen_location] {return get_weather(json[chosen_location - 1]);}, as_tuple(asio::detached));
+    }
+
+    asio::awaitable<void> Finder::get_weather(const json& location) {
+        std::cout << location["point"] << std::endl;
+        co_return;
+    }
+
+    std::string Finder::format_place(const json&place) {
+        std::vector<std::string> keys{"postcode", "country", "state", "name"};
+        std::stringstream ss;
+        std::ranges::for_each(keys, [&place, &ss](const std::string&key) {
+            if (place.contains(key)) {
+                ss << std::string(place[key]) + ", ";
+            }
+        });
+        std::string formatted_place = ss.str();
+        formatted_place.erase(formatted_place.end() - 2, formatted_place.end() - 1);
+        return formatted_place;
     }
 } // Places

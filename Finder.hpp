@@ -18,7 +18,9 @@ namespace Places {
     namespace asio = boost::asio;
 
     class Finder {
-        constexpr static auto API_KEY = "8f06ab6d-727d-453d-a63c-db843b782335";
+        constexpr static auto PLACES_API_KEY = "8f06ab6d-727d-453d-a63c-db843b782335";
+
+        constexpr static auto WEATHER_API_KEY = "25e4b3636234c63796164d8790d52b01";
 
         constexpr static auto LOCALE = "en";
 
@@ -27,6 +29,10 @@ namespace Places {
         static asio::awaitable<json> find_all_places(const std::string&place);
 
         static asio::awaitable<void> start(const std::string& place);
+
+        static asio::awaitable<void> get_weather(const json& location);
+
+        static std::string format_place(const json& place);
 
     public:
         static void find_places(const std::string&place);
