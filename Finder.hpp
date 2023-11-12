@@ -27,6 +27,8 @@ namespace Places {
 
         constexpr static auto WEATHER_API_KEY = "25e4b3636234c63796164d8790d52b01";
 
+        constexpr static auto INTERESTING_PLACES_API_KEY = "5ae2e3f221c38a28845f05b6bbd0c626598864236b0c0fcf6db566b3";
+
         constexpr static auto LOCALE = "en";
 
         constexpr static auto HTTP_VERSION = 11;
@@ -35,11 +37,13 @@ namespace Places {
 
         static asio::awaitable<void> start(const std::string& place);
 
-        static asio::awaitable<void> get_weather(const json& location);
+        static asio::awaitable<std::string> get_weather(const json& location);
 
-        static std::string format_print(const std::map<std::string, bool>& keys, const json& object);
+        static asio::awaitable<std::string> get_interesting_places(const json& location);
 
-        static asio::awaitable<std::string> send_request(const std::string& host, const std::string& port, const http::request<http::string_body>& req);
+        static std::string format_print(const std::map<std::tuple<std::string, std::string>, bool>& keys, const json& object);
+
+        static asio::awaitable<std::string> send_request(const std::string& host, const std::string& port, http::request<http::string_body>& req);
 
     public:
         static void find_places(const std::string&place);
