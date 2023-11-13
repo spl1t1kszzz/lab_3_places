@@ -45,7 +45,7 @@ namespace Places {
 
         static asio::awaitable<std::string> get_interesting_places(const json& location);
 
-        static std::string format_print(const std::map<std::tuple<std::string, std::string>, bool>& keys, const json& object);
+        static std::string format_print(const std::map<std::tuple<std::string, std::string, bool>, bool>& keys, const json& object);
 
         static asio::awaitable<std::string> get_interesting_place_info(const std::string& id);
 
