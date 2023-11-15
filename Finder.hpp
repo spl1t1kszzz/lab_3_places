@@ -15,6 +15,7 @@
 #include "JSON/JSON_Formatter.hpp"
 #include "API/HTTP_Request.hpp"
 #include "API/Weather.hpp"
+#include "API/Interesting_place.hpp"
 
 
 namespace Places {
@@ -27,18 +28,7 @@ namespace Places {
 
 
     class Finder {
-        constexpr static auto PLACES_API_KEY = "8f06ab6d-727d-453d-a63c-db843b782335";
-
-        constexpr static auto INTERESTING_PLACES_API_KEY = "5ae2e3f221c38a28845f05b6bbd0c626598864236b0c0fcf6db566b3";
-
-
-        static asio::awaitable<json> find_all_places(const std::string&place);
-
-        static asio::awaitable<void> start(const std::string&place);
-
-        static asio::awaitable<std::string> get_interesting_places(const json&location);
-
-        static asio::awaitable<std::string> get_interesting_place_info(const std::string&id);
+        static asio::awaitable<void> start(const std::string&location);
 
     public:
         static void find_places(const std::string&place);

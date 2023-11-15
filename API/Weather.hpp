@@ -21,7 +21,7 @@ namespace Places::API {
         constexpr static auto WEATHER_API_KEY = "25e4b3636234c63796164d8790d52b01";
 
     public:
-        static asio::awaitable<std::string> get_weather(const nlohmann::json&location);
+        static asio::awaitable<std::string> get_weather(const json&location);
     };
 }
 
