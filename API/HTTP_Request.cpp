@@ -1,6 +1,6 @@
 #include "HTTP_Request.hpp"
 
-namespace Places {
+namespace Places::API {
     asio::awaitable<std::string> HTTP_Request::send_request(const std::string& host, const std::string& port,
         http::request<http::string_body>& req) {
 

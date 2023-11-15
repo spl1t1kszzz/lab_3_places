@@ -10,13 +10,18 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(lab_3_places
         main.cpp
-        json.hpp
+        JSON/json.hpp
         Finder.cpp
         Finder.hpp
         API/Weather.cpp
         API/Weather.hpp
         API/HTTP_Request.cpp
         API/HTTP_Request.hpp
+        Config.hpp
+        JSON/JSON_Formatter.cpp
+        JSON/JSON_Formatter.hpp
+        API/Interesting_place.cpp
+        API/Interesting_place.hpp
 )
 
 

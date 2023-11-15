@@ -9,7 +9,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
-namespace Places {
+namespace Places::API {
 
     namespace asio = boost::asio;
     namespace beast = boost::beast;
