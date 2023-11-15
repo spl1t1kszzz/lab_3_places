@@ -9,8 +9,10 @@ namespace Places::API {
                 "/api/1/geocode?q=" + location + "&locale=" + Config::LOCALE + "&key=" + Config::LOCATIONS_API_KEY),
             Config::HTTP_VERSION
         };
+        std::cout << req << std::endl;
         auto response = co_await API::HTTP_Request::send_request("graphhopper.com", "443", req);
-        co_return response.empty() ? nullptr : json::parse(response)["hits"];
+        auto result = json::parse(response);
+        co_return result["hits"].empty() ? nullptr : result["hits"];
     }
 
     asio::awaitable<std::string> Interesting_place::get_interesting_places(const json& location) {

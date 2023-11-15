@@ -9,10 +9,10 @@ namespace Places {
         for (const auto&[key, display_value]: keys) {
             if (auto json_key = std::get<0>(key); object.contains(json_key)) {
                 auto key_to_display = std::get<1>(key);
-                if (bool display_key = std::get<2>(key)) {
-                    ss << key_to_display + ": ";
-                }
                 if (display_value) {
+                    if (bool display_key = std::get<2>(key)) {
+                        ss << key_to_display + ": ";
+                    }
                     if (object[json_key].is_string()) {
                         auto value = object[json_key].get<std::string>();
                         ss << (value.empty() ? "no" + key_to_display : value);
