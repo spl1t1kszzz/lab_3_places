@@ -8,7 +8,7 @@ namespace Places {
         };
         req.set(http::field::host, "graphhopper.com");
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        auto response = co_await send_request("graphhopper.com", "443", req);
+        auto response = co_await HTTP_Request::send_request("graphhopper.com", "443", req);
         co_return response.empty() ? nullptr : json::parse(response)["hits"];
     }
 
@@ -27,9 +27,9 @@ namespace Places {
         }
         // 1st string - key in json, 2nd key - key to display
         const std::map<std::tuple<std::string, std::string, bool>, bool> keys{
-            {{"postcode", "Postcode", false}, true}, {{"country", "Country", false}, true},
-            {{"state", "State", false}, true},
-            {{"name", "name", false}, true}
+                {{"postcode", "Postcode", false}, true}, {{"country", "Country", false}, true},
+                {{"state", "State", false}, true},
+                {{"name", "name", false}, true}
         };
         for (int i = 0; i < json.size(); ++i) {
             std::cout << "Location " << i + 1 << ": " << format_print(keys, json[i]) << std::endl << std::endl;
@@ -38,12 +38,10 @@ namespace Places {
         int chosen_location;
         std::cin >> chosen_location;
         std::stringstream result;
-        // auto a = co_await co_spawn(co_await asio::this_coro::executor, [&json, chosen_location] { return get_weather(json[chosen_location - 1]);}, asio::use_awaitable);
         result << std::string("Weather in ") + json[chosen_location - 1]["name"].get<std::string>() + ": " + co_await
                 get_weather(json[chosen_location - 1]);
-        // result << "Weather in " +  co_await get_weather(json[chosen_location - 1]);
         result << std::endl << co_await get_interesting_places(json[chosen_location - 1]);
-        std::cout << result.str();
+        std::cout << result.str() << std::flush;
     }
 
     asio::awaitable<std::string> Finder::get_weather(const json&location) {
@@ -58,7 +56,7 @@ namespace Places {
         };
         request.set(http::field::host, "api.openweathermap.org");
         request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        auto response = co_await send_request("api.openweathermap.org", "443", request);
+        auto response = co_await HTTP_Request::send_request("api.openweathermap.org", "443", request);
 
         const std::map<std::tuple<std::string, std::string, bool>, bool> keys{
             {{"temp", "Temerature (C)", true}, true}, {{"feels_like", "Feels like (C)", true}, true},
@@ -79,9 +77,9 @@ namespace Places {
         };
         request.set(http::field::host, "api.opentripmap.com");
         request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        auto response = co_await send_request("api.opentripmap.com", "443", request);
+        auto response = co_await HTTP_Request::send_request("api.opentripmap.com", "443", request);
         const std::map<std::tuple<std::string, std::string, bool>, bool> keys{
-            {{"id", "ID", false}, false}, {{"name", "Name", true}, true}
+            {{"id", "ID", false}, false},  {{"name", "Name", true}, true}, {{"address", "Address", true}, true}
         };
         std::stringstream ss;
         for (int i = 0; i < json::parse(response)["features"].size(); ++i) {
@@ -99,29 +97,32 @@ namespace Places {
             http::verb::get, "/0.1/en/places/xid/" + id + "?apikey=" + INTERESTING_PLACES_API_KEY,
             HTTP_VERSION
         };
-        request.set(http::field::host, "api.opentripmap.com");
-        request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-        auto response = co_await send_request("api.opentripmap.com", "443", request);
+        auto response = co_await HTTP_Request::send_request("api.opentripmap.com", "443", request);
+        if (json::parse(response)["wikipedia_extracts"]["text"].is_null()) {
+            co_return std::string("no desc");
+        }
         co_return json::parse(response)["wikipedia_extracts"]["text"].get<std::string>();
     }
 
     std::string Finder::format_print(const std::map<std::tuple<std::string, std::string, bool>, bool>&keys,
                                      const json&object) {
         std::stringstream ss;
-        for (const auto&[key, display]: keys) {
-            if (object.contains(std::get<0>(key))) {
-                if (std::get<2>(key)) {
-                    ss << std::get<1>(key) + ": ";
+        for (const auto&[key, display_value]: keys) {
+            if (auto json_key = std::get<0>(key); object.contains(json_key)) {
+                auto key_to_display = std::get<1>(key);
+                if (bool display_key = std::get<2>(key)) {
+                    ss << key_to_display + ": ";
                 }
-                if (display) {
-                    if (object[std::get<0>(key)].is_string()) {
-                        ss << object[std::get<0>(key)].get<std::string>();
+                if (display_value) {
+                    if (object[json_key].is_string()) {
+                        auto value = object[json_key].get<std::string>();
+                        ss << (value.empty() ? "no" +  key_to_display : value);
                     }
-                    else if (object[std::get<0>(key)].is_number_float()) {
-                        ss << std::setprecision(2) << object[std::get<0>(key)].get<double>();
+                    else if (object[json_key].is_number_float()) {
+                        ss << std::setprecision(2) << object[json_key].get<double>();
                     }
-                    else if (object[std::get<0>(key)].is_number_integer()) {
-                        ss << object[std::get<0>(key)].get<int>();
+                    else if (object[json_key].is_number_integer()) {
+                        ss << object[json_key].get<int>();
                     }
                     ss << ", ";
                 }
@@ -134,37 +135,5 @@ namespace Places {
         }
         return formatted;
     }
-
-
-    asio::awaitable<std::string> Finder::send_request(const std::string&host, const std::string&port,
-                                                      http::request<http::string_body>&req) {
-        auto executor = co_await asio::this_coro::executor;
-        asio::ip::tcp::resolver resolver{executor};
-        ssl::context ctx(ssl::context::sslv23_client);
-        ssl::stream<asio::ip::tcp::socket> stream(executor, ctx);
-        const asio::ip::tcp::resolver::query query{host, port};
-        auto [ec, it] = co_await resolver.async_resolve(query, as_tuple(asio::use_awaitable));
-        if (ec) {
-            std::cerr << "resolve: " + ec.what() << std::endl;
-            co_return std::string();
-        }
-        if (auto [error] = co_await stream.lowest_layer().async_connect(*it, as_tuple(asio::use_awaitable)); error) {
-            std::cerr << "connect: " + error.what() << std::endl;
-            co_return std::string();
-        }
-        co_await stream.async_handshake(ssl::stream_base::handshake_type::client, asio::use_awaitable);
-        if (auto [ec, n] = co_await http::async_write(stream, req, as_tuple(asio::use_awaitable)); ec) {
-            std::cerr << "async write: " + ec.what() << std::endl;
-            co_return std::string();
-        }
-
-        beast::flat_buffer buffer;
-        http::response<http::string_body> response;
-        if (auto [ec, n] = co_await http::async_read(stream, buffer, response, as_tuple(asio::use_awaitable));
-            ec) {
-            std::cerr << ec.what() << std::endl;
-            co_return std::string();
-        }
-        co_return response.body();
-    }
+    
 } // Places

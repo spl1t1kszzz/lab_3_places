@@ -13,6 +13,10 @@ add_executable(lab_3_places
         json.hpp
         Finder.cpp
         Finder.hpp
+        API/Weather.cpp
+        API/Weather.hpp
+        API/HTTP_Request.cpp
+        API/HTTP_Request.hpp
 )
 
 

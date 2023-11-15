@@ -11,6 +11,8 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/ssl.hpp>
 #include "json.hpp"
+#include "API/HTTP_Request.hpp"
+
 
 
 namespace Places {
@@ -29,7 +31,7 @@ namespace Places {
 
         constexpr static auto INTERESTING_PLACES_API_KEY = "5ae2e3f221c38a28845f05b6bbd0c626598864236b0c0fcf6db566b3";
 
-        constexpr static auto LIMIT_OF_INT_PLACES = 3;
+        constexpr static auto LIMIT_OF_INT_PLACES = 5;
 
         constexpr static auto LOCALE = "en";
 
@@ -49,7 +51,6 @@ namespace Places {
 
         static asio::awaitable<std::string> get_interesting_place_info(const std::string& id);
 
-        static asio::awaitable<std::string> send_request(const std::string& host, const std::string& port, http::request<http::string_body>& req);
 
     public:
         static void find_places(const std::string&place);
