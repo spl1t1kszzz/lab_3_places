@@ -10,7 +10,9 @@ namespace Places {
     struct Config {
         constexpr static auto LIMIT_OF_INT_PLACES = 5;
 
-        constexpr static auto LOCALE = "en";
+        constexpr static auto LIMIT_OF_LOCATIONS = 10;
+
+        constexpr static auto LOCALE = "ru";
 
         constexpr static auto HTTP_VERSION = 11;
 

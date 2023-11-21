@@ -6,7 +6,8 @@ namespace Places::API {
         http::request<http::string_body> req{
             http::verb::get,
             std::string(
-                "/api/1/geocode?q=" + location + "&locale=" + Config::LOCALE + "&key=" + Config::LOCATIONS_API_KEY),
+                "/api/1/geocode?q=" + location + "&locale=" + Config::LOCALE + "&key=" + Config::LOCATIONS_API_KEY +
+                "&limit=" + std::to_string(Config::LIMIT_OF_LOCATIONS)),
             Config::HTTP_VERSION
         };
         auto response = co_await HTTP_Request::send_request("graphhopper.com", "443", req);
@@ -27,9 +28,9 @@ namespace Places::API {
         };
         auto response = co_await HTTP_Request::send_request("api.opentripmap.com", "443", request);
         std::stringstream ss;
-        for (auto features = json::parse(response)["features"]; const auto& feature: features) {
+        for (auto features = json::parse(response)["features"]; const auto&feature: features) {
             ss << JSON_Formatter::format_print(Config::INT_PLACE_KEYS, feature) +
-                JSON_Formatter::format_print(Config::INT_PLACE_KEYS, feature["properties"]) << std::endl;
+                    JSON_Formatter::format_print(Config::INT_PLACE_KEYS, feature["properties"]) << std::endl;
             ss << co_await get_interesting_place_info(feature["id"].get<std::string>());
         }
         co_return ss.str();

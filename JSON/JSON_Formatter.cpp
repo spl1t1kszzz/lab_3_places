@@ -4,6 +4,8 @@
 
 #include "../Config.hpp"
 
+#include <sstream>
+
 
 namespace Places {
     std::string JSON_Formatter::format_print(
