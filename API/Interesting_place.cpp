@@ -30,8 +30,7 @@ namespace Places::API {
         for (auto features = json::parse(response)["features"]; const auto& feature: features) {
             ss << JSON_Formatter::format_print(Config::INT_PLACE_KEYS, feature) +
                 JSON_Formatter::format_print(Config::INT_PLACE_KEYS, feature["properties"]) << std::endl;
-            ss << co_await get_interesting_place_info(feature["id"].get<std::string>()) <<
-                    std::endl << std::endl;
+            ss << co_await get_interesting_place_info(feature["id"].get<std::string>());
         }
         co_return ss.str();
     }
@@ -43,8 +42,8 @@ namespace Places::API {
         };
         auto response = co_await HTTP_Request::send_request("api.opentripmap.com", "443", request);
         if (json::parse(response)["wikipedia_extracts"]["text"].is_null()) {
-            co_return std::string("no desc");
+            co_return std::string();
         }
-        co_return json::parse(response)["wikipedia_extracts"]["text"].get<std::string>();
+        co_return json::parse(response)["wikipedia_extracts"]["text"].get<std::string>() + "\n\n";
     }
 }

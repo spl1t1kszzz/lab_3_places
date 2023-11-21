@@ -20,15 +20,24 @@ namespace Places {
 
         constexpr static auto INTERESTING_PLACES_API_KEY = "5ae2e3f221c38a28845f05b6bbd0c626598864236b0c0fcf6db566b3";
 
-        inline const static std::map<std::tuple<std::string, std::string, bool>, std::tuple<std::function<std::string
-            (const nlohmann::json&)>, bool>> LOCATION_KEYS{
-            {{"postcode", "Postcode", false}, {nullptr, true}}, {{"country", "Country", false}, {nullptr, true}},
-            {{"state", "State", false}, {nullptr, true}},
-            {{"name", "name", false}, {nullptr, true}}
-        };
 
         inline static std::function<std::string(const std::string&)> default_value_format = [](const std::string&x) {
             return x + '\n';
+        };
+
+        inline static std::function<std::string(const nlohmann::json&)> get_string = [](const nlohmann::json&object) {
+            using namespace std;
+            const auto&val_type = JSON_Formatter::get_value_type(object);
+            if (val_type == typeid(int).name()) {
+                return to_string(object.get<int>());
+            }
+            if (val_type == typeid(double).name()) {
+                return to_string(object.get<double>());
+            }
+            if (val_type == typeid(string).name()) {
+                return object.get<string>();
+            }
+            return string();
         };
 
         inline static std::function<std::string(const nlohmann::json&)> presssure_converter = [
@@ -44,7 +53,8 @@ namespace Places {
             return string();
         };
 
-        inline static std::function<std::string(const nlohmann::json&)> temperature_converter = [] (const nlohmann::json&object) {
+        inline static std::function<std::string(const nlohmann::json&)> temperature_converter = [
+                ](const nlohmann::json&object) {
             using namespace std;
             const auto val_type = JSON_Formatter::get_value_type(object);
             if (val_type == typeid(int).name()) {
@@ -57,11 +67,19 @@ namespace Places {
         };
 
         inline const static std::map<std::tuple<std::string, std::string, bool>, std::tuple<std::function<std::string
+            (const nlohmann::json&)>, bool>> LOCATION_KEYS{
+            {{"postcode", "Postcode", false}, {nullptr, true}}, {{"country", "Country", false}, {nullptr, true}},
+            {{"state", "State", false}, {nullptr, true}},
+            {{"name", "name", false}, {nullptr, true}}
+        };
+
+
+        inline const static std::map<std::tuple<std::string, std::string, bool>, std::tuple<std::function<std::string
             (const nlohmann::json&)>, bool>> WEATHER_KEYS{
             {{"temp", "Temerature (C)", true}, {temperature_converter, true}},
             {{"feels_like", "Feels like (C)", true}, {temperature_converter, true}},
             {{"humidity", "Humidity (%)", true}, {temperature_converter, true}},
-            {{"pressure", "Pressure (hPa)", true}, {presssure_converter, true}}
+            {{"pressure", "Pressure (mmHg)", true}, {presssure_converter, true}}
         };
 
         inline const static std::map<std::tuple<std::string, std::string, bool>, std::tuple<std::function<std::string

@@ -29,5 +29,6 @@ namespace Places {
                 API::Weather::get_weather(chosen_json);
         result << std::endl << co_await API::Interesting_place::get_interesting_places(chosen_json);
         std::cout << result.str() << std::flush;
+        co_return;
     }
 } // Places
