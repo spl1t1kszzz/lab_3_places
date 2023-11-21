@@ -19,14 +19,14 @@ namespace Places {
             std::cout << "Location " << i + 1 << ": " << JSON_Formatter::format_print(Config::LOCATION_KEYS, json[i]) <<
                     std::endl << std::endl;
         }
-        std::cout << "Choose location: ";
+        std::cout << "Choose location:";
         int chosen_location;
         std::cin >> chosen_location;
         std::stringstream result;
 
         auto chosen_json = json[chosen_location - 1];
-        result << std::string("Weather in ") + chosen_json["name"].get<std::string>() + ": "
-                + co_await API::Weather::get_weather(chosen_json);
+        result << std::string("\nWeather in ") + chosen_json["name"].get<std::string>() + ": " << std::endl << co_await
+                API::Weather::get_weather(chosen_json);
         result << std::endl << co_await API::Interesting_place::get_interesting_places(chosen_json);
         std::cout << result.str() << std::flush;
     }

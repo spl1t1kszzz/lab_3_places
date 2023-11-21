@@ -3,7 +3,7 @@
 
 
 int main() {
-    //setlocale(LC_ALL, "Russian");
+    // setlocale(LC_ALL, "Russian");
     std::string request;
     std::cout << "Type request:";
     std::getline(std::cin, request, '\n');
