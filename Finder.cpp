@@ -25,10 +25,10 @@ namespace Places {
         std::stringstream result;
 
         auto chosen_json = json[chosen_location - 1];
-        result << std::string("\nWeather in ") + chosen_json["name"].get<std::string>() + ": " << std::endl << co_await
-                API::Weather::get_weather(chosen_json);
+        result << std::string("\n\nWeather in ") + chosen_json["name"].get<std::string>() + ": " << std::endl << co_await
+                API::Weather::get_weather(chosen_json) << std::endl << std::endl;
         result << std::endl << co_await API::Interesting_place::get_interesting_places(chosen_json);
-        std::cout << result.str() << std::flush;
+        std::cout << result.str() << std::endl;
         co_return;
     }
 } // Places

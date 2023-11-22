@@ -1,7 +1,5 @@
 #include "JSON_Formatter.hpp"
 
-#include <iostream>
-
 #include "../Config.hpp"
 
 #include <sstream>
@@ -9,16 +7,15 @@
 
 namespace Places {
     std::string JSON_Formatter::format_print(
-        const std::map<std::tuple<std::string, std::string, bool>, std::tuple<std::function<std::string(
-            const nlohmann::json&)>, bool>>&keys,
+        const std::map<std::tuple<json_key, displayable_key, display_key>, std::tuple<json_value_converter, display_value>>&keys,
         const nlohmann::json&object) {
         std::stringstream ss;
         bool remove_last_comma = false;
         for (const auto&[key,value]: keys) {
             if (auto json_key = std::get<0>(key); object.contains(json_key)) {
                 // do not display empty string
-                if (object[json_key].is_string() && !object[json_key].get<std::string>().empty() || !(object[json_key].
-                        is_string())) {
+                if (object[json_key].is_string() && !object[json_key].get<std::string>().empty() || !object[json_key].
+                    is_string()) {
                     auto key_to_display = std::get<1>(key);
                     if (bool display_value = std::get<1>(value)) {
                         if (bool display_key = std::get<2>(key)) {
@@ -34,7 +31,6 @@ namespace Places {
                             remove_last_comma = true;
                         }
                     }
-
                 }
             }
         }
